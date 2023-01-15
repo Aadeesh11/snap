@@ -1,5 +1,10 @@
 import { OnRpcRequestHandler } from '@metamask/snap-types';
 
+
+async function getPrices() {
+  const response = await fetch('https://api.coincap.io/v2/assets?limit=10'); 
+  return response.text(); 
+}
 /**
  * Get a message from the origin. For demonstration purposes only.
  *
@@ -9,6 +14,7 @@ import { OnRpcRequestHandler } from '@metamask/snap-types';
 export const getMessage = (originString: string): string =>
   `Hello, ${originString}!`;
 
+  
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
  *
@@ -22,20 +28,24 @@ export const getMessage = (originString: string): string =>
  */
 export const onRpcRequest: OnRpcRequestHandler = ({ origin, request }) => {
   switch (request.method) {
-    case 'hello':
-      return wallet.request({
-        method: 'snap_confirm',
-        params: [
-          {
-            prompt: getMessage(origin),
-            description:
-              'This custom confirmation is just for display purposes.',
-            textAreaContent:
-              'But you can edit the snap source code to make it do something, if you want to!',
-          },
-        ],
-      });
-    default:
-      throw new Error('Method not found.');
-  }
-};
+    case 'fees':
+      return getPrices().then(fees => {
+        const pricesObject = JSON.parse(fees).data; 
+        let prices = '';
+        for(let f in pricesObject){
+          let individualData = pricesObject[parseInt(f)];
+          prices += `${individualData.symbol} ${individualData.priceUsd} USD\n`;
+        }
+        return wallet.request({
+          method: 'snap_confirm', 
+          params: [
+            {
+              prompt: getMessage(origin),
+              description:
+                'Top 10 prices',
+              textAreaContent:
+              prices
+            }
+          ]
+        }); 
+      })}};
