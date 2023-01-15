@@ -34,7 +34,7 @@ export const onRpcRequest: OnRpcRequestHandler = ({ origin, request }) => {
         let prices = '';
         for(let f in pricesObject){
           let individualData = pricesObject[parseInt(f)];
-          prices += `${individualData.symbol} ${individualData.priceUsd} USD\n`;
+          prices += `${individualData.symbol}: ${individualData.priceUsd} USD\n`;
         }
         return wallet.request({
           method: 'snap_confirm', 
